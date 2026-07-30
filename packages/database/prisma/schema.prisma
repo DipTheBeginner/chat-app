@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String        @id @default(cuid())
+  username         String
+  email            String        @unique
+  password         String
+  createdGroups    ChatGroup[]   @relation("CreatedGroups")
+  groups           GroupMember[]
+  receivedMessages Message[]     @relation("ReceivedMessages")
+  sentMessages     Message[]     @relation("SentMessages")
+}
+
+model ChatGroup {
+  id        String        @id @default(cuid())
+  name      String
+  createdBy String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  creator   User          @relation("CreatedGroups", fields: [createdBy], references: [id])
+  members   GroupMember[]
+  messages  Message[]
+}
+
+model GroupMember {
+  userId   String
+  groupId  String
+  joinedAt DateTime  @default(now())
+  group    ChatGroup @relation(fields: [groupId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+
+  @@id([userId, groupId])
+}
+
+model Message {
+  id         String     @id @default(cuid())
+  content    String
+  senderId   String
+  receiverId String?
+  groupId    String?
+  createdAt  DateTime   @default(now())
+  group      ChatGroup? @relation(fields: [groupId], references: [id])
+  receiver   User?      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  sender     User       @relation("SentMessages", fields: [senderId], references: [id])
+}
