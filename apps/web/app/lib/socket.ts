@@ -1,22 +1,24 @@
-import { io, Socket } from "socket.io-client";
+let socket: WebSocket | null = null;
 
-let socket: Socket | null = null;
+export function getSocket(): WebSocket {
+  if (!socket || socket.readyState === WebSocket.CLOSED) {
+    const token = localStorage.getItem("token");
 
-export function getSocket(): Socket {
-  if (!socket) {
-    socket = io("http://localhost:5000", {
-      auth: {
-        token: localStorage.getItem("token"),
-      },
-    });
+    socket = new WebSocket(
+      `ws://localhost:5000?token=${token}`
+    );
 
-    socket.on("connect", () => {
-      console.log("✅ Socket connected:", socket!.id);
-    });
+    socket.onopen = () => {
+      console.log("WebSocket connected");
+    };
 
-    socket.on("connect_error", (err) => {
-      console.log("❌ Socket error:", err.message);
-    });
+    socket.onerror = (error) => {
+      console.log("WebSocket error:", error);
+    };
+
+    socket.onclose = () => {
+      console.log("WebSocket disconnected");
+    };
   }
 
   return socket;
