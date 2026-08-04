@@ -55,7 +55,7 @@ export async function getGroupMessages(groupId: string) {
 
 export async function createGroup(name: string) {
 
-    const response = await fetch(`${BASE_URL}/groups/create`, {
+    const response = await fetch(`${BASE_URL}/groups`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

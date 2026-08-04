@@ -6,9 +6,7 @@ import { getSocket } from "./app/lib/socket";
 export default function Home() {
   useEffect(() => {
     const socket = getSocket();
-
    
-
     socket.onmessage=(event)=>{
       const data=JSON.parse(event.data);
     }

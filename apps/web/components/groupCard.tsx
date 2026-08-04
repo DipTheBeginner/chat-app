@@ -11,7 +11,7 @@ export default function GroupCard({
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-4 border-b hover:bg-gray-100"
+      className="w-full text-left p-4 border-b bg-red-600"
     >
       {name}
     </button>

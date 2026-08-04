@@ -3,21 +3,14 @@ import app from "./app";
 import { WebSocketServer, WebSocket } from "ws";
 import { AuthUser } from "./types/auth";
 import jwt from "jsonwebtoken"
-import { ClientMessage } from "./types/websocket";
-import { joinRoom } from "./webSockets/roomManger";
+import groupHandler from "./webSockets/groupHandler";
+import { AuthenticatedWebSocket } from "./webSockets/roomManger";
 
 const PORT = process.env.PORT || 5000;
 
 const server = http.createServer(app);
 
 const wss = new WebSocketServer({ server });
-
-
-
-interface AuthenticatedWebSocket extends WebSocket {
-  user?: AuthUser
-}
-
 
 
 wss.on("connection", (ws: AuthenticatedWebSocket, req) => {
@@ -43,7 +36,7 @@ wss.on("connection", (ws: AuthenticatedWebSocket, req) => {
 
 
   } catch (error) {
-    console.log("❌ Invalid token");
+    console.log("Invalid token");
     ws.close();
     return;
 
@@ -52,31 +45,15 @@ wss.on("connection", (ws: AuthenticatedWebSocket, req) => {
   console.log("new websocket connection");
 
 
-  ws.on("message", (message) => {
-    try {
-      const data: ClientMessage = JSON.parse(message.toString());
+  ws.on("message", async (message) => {
+    await groupHandler(ws, message);
+  });
 
-      console.log(data);
+  ws.on("close", () => {
+    console.log(`${ws.user?.email} disconnected`);
+  });
 
-      switch (data.type) {
-        case "join-group":
-          joinRoom(data.groupId, ws);
-          break;
-
-        case "leave-group":
-          console.log("Leave group", data.groupId);
-          break
-
-        case "send-message":
-          console.log(data.content);
-          break;
-      }
-    }catch(error){
-      console.log("Invalid websoket message")
-    }
-  })
-
-})
+});
 
 
 

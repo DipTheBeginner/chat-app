@@ -3,43 +3,51 @@
 
 "use client";
 
-console.log("Sidebar rendered");
-import { useEffect, useState } from "react";
-import { getMyGroups } from "../app/api/groups";
+import {  useState } from "react";
 import GroupCard from "./groupCard";
+import { getSocket } from "../app/lib/socket";
+
 
 type Group = {
     id: string;
     name: string;
 };
 
-export default function Sidebar() {
-    const [groups, setGroups] = useState<Group[]>([]);
 
-    useEffect(() => {
-        async function loadGroups() {
-            try {
-                console.log("Calling getMyGroups");
+type props = {
+    onCreateGroup: () => void;
+    groups: Group[]
+}
 
-                const data = await getMyGroups();
 
-                console.log("Received:", data);
 
-                if (data.success) {
-                    setGroups(data.groups);
-                }
-            } catch (error) {
-                console.error("Load groups failed:", error);
-            }
-        }
 
-        loadGroups();
-    }, []);
+
+export default function Sidebar({ onCreateGroup,groups }: props) {
+
+    const [selectedGroups, setSelectedGroups] = useState<string | null>(null)
+
+    function handleGroupClick(groupId: string) {
+        setSelectedGroups(groupId);
+
+        const socket = getSocket();
+
+        socket.send(
+            JSON.stringify({
+                type: "join-group",
+                groupId
+            })
+        )
+    }
+
+
+
+
 
     return (
         <div className="w-80 border-r h-full flex flex-col">
             <div className="p-4 border-b">
-                <button className="bg-blue-600 text-white w-full py-2 rounded">
+                <button onClick={onCreateGroup} className="bg-blue-600 text-white w-full py-2 rounded">
                     + Create Group
                 </button>
             </div>
@@ -50,10 +58,11 @@ export default function Sidebar() {
                         key={group.id}
                         id={group.id}
                         name={group.name}
-                        onClick={() => { }}
+                        onClick={() => handleGroupClick(group.id)}
                     />
                 ))}
             </div>
+
         </div>
     );
 }
