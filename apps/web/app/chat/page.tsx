@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import MessageBox from "../../components/MessageBox";
 import Sidebar from "../../components/Sidebar"
 import CreateGroupModal from "../../components/CreateGroupModal";
-import { createGroup, getMyGroups } from "../api/groups";
+import { addMember, createGroup, getMyGroups } from "../api/groups";
 import { getSocket } from "../lib/socket";
+import AddMemmberModal from "../../components/AddMemberModal";
 
 
 
@@ -23,6 +24,9 @@ export default function ChatPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [memberEmail, setMemberEmail] = useState("");
 
   useEffect(() => {
     async function loadGroups() {
@@ -42,19 +46,12 @@ export default function ChatPage() {
     }
 
     loadGroups();
-
-    const socket = getSocket();
-
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      console.log("Websocket", data)
-    }
   }, []);
 
 
 
   async function handleCreateGroup() {
+    console.log("Add Member clicked");
     try {
       if (!groupName.trim()) {
         return;
@@ -74,28 +71,59 @@ export default function ChatPage() {
     }
   }
 
+  async function handleAddMember() {
+
+    if (!selectedGroup) return;
+
+    if (!memberEmail.trim()) return;
+
+    try {
+
+
+      const data = await addMember(
+        selectedGroup,
+        memberEmail
+
+      )
+
+      console.log(data);
+
+      if (data.success) {
+        setShowAddMemberModal(false);
+        setMemberEmail("")
+      }
+    } catch (error) {
+      console.log(error)
+
+    }
+  }
+
 
 
   return (
-    <div className="h-screen flex">
+    <div className="min-h-screen flex">
       <Sidebar
         onCreateGroup={() => setShowCreateModal(true)}
         groups={groups}
+        selectedGroup={selectedGroup}
+        setSelectedGroup={setSelectedGroup}
 
       />
 
       <div className="flex-1 flex flex-col">
-        <div className="h-16 border-b flex items-center px-6">
-          Chat Header
+        <div className="h-16 border-b flex items-center justify-between px-6">
+          <h2>Chat</h2>
+
+          <button onClick={() => setShowAddMemberModal(true)}>
+            Add Member
+          </button>
         </div>
 
         <div className="flex-1">
-          <MessageBox />
+          <MessageBox selectedGroup={selectedGroup} />
         </div>
 
-        <div className="border-t p-4">
 
-        </div>
       </div>
 
       {showCreateModal && (
@@ -107,6 +135,20 @@ export default function ChatPage() {
             setGroupName("");
           }}
           onCreate={handleCreateGroup}
+        />
+      )}
+
+      {showAddMemberModal && (
+        <AddMemmberModal
+          email={memberEmail}
+          setEmail={setMemberEmail}
+          onClose={() => {
+            setShowAddMemberModal(false);
+            setMemberEmail("")
+          }}
+
+          onAdd={handleAddMember}
+
         />
       )}
     </div>

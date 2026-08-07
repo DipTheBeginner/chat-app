@@ -13,8 +13,12 @@ import { prisma } from "@repo/database";
 
 export default async function groupHandler(ws: AuthenticatedWebSocket, rawMessage: WebSocket.RawData) {
 
+    console.log("Raw websocket:", rawMessage.toString());
+
     try {
         const data: ClientMessage = JSON.parse(rawMessage.toString());
+
+        console.log("Parsed data:", data);
 
 
         switch (data.type) {
@@ -29,6 +33,7 @@ export default async function groupHandler(ws: AuthenticatedWebSocket, rawMessag
                 break;
 
             case "send-message":
+                console.log("➡️ send-message case");
                 await handleSendMessage(
 
                     ws,
@@ -94,6 +99,10 @@ async function handleSendMessage(ws: AuthenticatedWebSocket,
     }
 ) {
 
+    console.log("Entered handleSendMessage");
+    console.log("groupId:", data.groupId);
+    console.log("content:", data.content);
+
     try {
 
         const { groupId, content } = data;
@@ -129,6 +138,11 @@ async function handleSendMessage(ws: AuthenticatedWebSocket,
             }
         })
 
+        
+        console.log("Message saved:", message);
+
+        console.log("Broadcasting to room:", groupId);
+        console.log("Broadcasting to room:", groupId);
         broadcast(
             groupId,
             JSON.stringify({

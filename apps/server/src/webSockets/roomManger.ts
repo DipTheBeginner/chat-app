@@ -36,11 +36,25 @@ export function leaveRoom(groupId: string, ws: AuthenticatedWebSocket) {
 export function broadcast(groupId: string, data: string) {
     const clients = rooms.get(groupId);
 
+    console.log("Broadcast() called");
+    console.log("Room:", groupId);
+    console.log("Clients:", clients?.size);
 
-    if (!clients) return;
+    if (!clients) {
+        console.log("No clients found");
+        return;
+    }
 
     for (const client of clients) {
+        console.log(
+            "Client:",
+            client.user?.email,
+            "ReadyState:",
+            client.readyState
+        );
+
         if (client.readyState === WebSocket.OPEN) {
+            console.log("Sending message");
             client.send(data);
         }
     }

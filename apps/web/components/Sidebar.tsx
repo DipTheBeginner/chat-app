@@ -3,7 +3,6 @@
 
 "use client";
 
-import {  useState } from "react";
 import GroupCard from "./groupCard";
 import { getSocket } from "../app/lib/socket";
 
@@ -17,19 +16,23 @@ type Group = {
 type props = {
     onCreateGroup: () => void;
     groups: Group[]
+    selectedGroup: string | null;
+    setSelectedGroup: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 
 
 
 
-export default function Sidebar({ onCreateGroup,groups }: props) {
+export default function Sidebar({ onCreateGroup,
+    groups,
+    selectedGroup,
+    setSelectedGroup, }: props) {
 
-    const [selectedGroups, setSelectedGroups] = useState<string | null>(null)
+
 
     function handleGroupClick(groupId: string) {
-        setSelectedGroups(groupId);
-
+        setSelectedGroup(groupId)
         const socket = getSocket();
 
         socket.send(
