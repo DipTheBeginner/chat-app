@@ -1,27 +1,42 @@
 let socket: WebSocket | null = null;
+let socketPromise: Promise<WebSocket> | null = null;
 
-export function getSocket(): WebSocket {
-  console.log("Current socket:", socket); 
-  if (!socket || socket.readyState === WebSocket.CLOSED) {
-    console.log("Creating NEW socket");
-    const token = localStorage.getItem("token");
+export function getSocket(): Promise<WebSocket> {
+    if (socket?.readyState === WebSocket.OPEN) {
+      return Promise.resolve(socket);
+    }
 
-    socket = new WebSocket(
-      `ws://localhost:5000?token=${token}`
-    );
 
-    socket.onopen = () => {
-      console.log("WebSocket connected");
-    };
+    if (socketPromise) {
+      return socketPromise;
+    }
 
-    socket.onerror = (error) => {
-      console.log("WebSocket error:", error);
-    };
+    socketPromise = new Promise<WebSocket>((resolve, reject) => {
+      const token = localStorage.getItem("token")
 
-    socket.onclose = () => {
-      console.log("WebSocket disconnected");
-    };
-  }
 
-  return socket;
+      socket = new WebSocket(
+        `ws://localhost:5000?token=${token}`
+      );
+
+      socket.onopen = () => {
+        console.log("WebSocket connected");
+        resolve(socket!)
+      };
+
+      socket.onerror = (error) => {
+        console.log("WebSocket error:", error);
+        socket = null;
+        socketPromise = null;
+        reject(error)
+      };
+
+      socket.onclose = () => {
+        console.log("WebSocket disconnected");
+        socket = null;
+        socketPromise = null;
+      };
+    })
+
+    return socketPromise;
 }

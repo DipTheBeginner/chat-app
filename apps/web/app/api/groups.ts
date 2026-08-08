@@ -77,19 +77,19 @@ export async function createGroup(name: string) {
 
 
 
-export async function addMember(groupId:string , email:string) {
+export async function addMember(groupId: string, email: string) {
     const token = localStorage.getItem("token")
 
 
 
-    const response=await fetch(`${BASE_URL}/groups/add-member`,{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json",
-            Authorization:`Bearer ${token}`
+    const response = await fetch(`${BASE_URL}/groups/add-member`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
         },
 
-        body:JSON.stringify({
+        body: JSON.stringify({
             groupId,
             email,
         }),
@@ -97,8 +97,15 @@ export async function addMember(groupId:string , email:string) {
 
     })
 
+
+    if (response.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/signup";
+        return;
+    }
+
     return response.json();
-    
+
 }
 
 

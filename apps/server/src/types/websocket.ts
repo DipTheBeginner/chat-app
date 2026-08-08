@@ -11,4 +11,9 @@ export type ClientMessage =
         type: "send-message";
         groupId: string;
         content: string;
-    };
+    }
+    | {
+    type: "send-personal-message";
+    receiverId: string;
+    content: string;
+};

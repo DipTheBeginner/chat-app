@@ -31,16 +31,19 @@ export default function Sidebar({ onCreateGroup,
 
 
 
-    function handleGroupClick(groupId: string) {
+    async function handleGroupClick(groupId: string) {
         setSelectedGroup(groupId)
-        const socket = getSocket();
+        const socket = await getSocket();
 
-        socket.send(
-            JSON.stringify({
-                type: "join-group",
-                groupId
-            })
-        )
+
+            socket.send(
+                JSON.stringify({
+                    type: "join-group",
+                    groupId
+                })
+            )
+
+
     }
 
 
@@ -48,20 +51,21 @@ export default function Sidebar({ onCreateGroup,
 
 
     return (
-        <div className="w-80 border-r h-full flex flex-col">
-            <div className="p-4 border-b">
-                <button onClick={onCreateGroup} className="bg-blue-600 text-white w-full py-2 rounded">
+        <div className="w-80 border-r h-full flex flex-col bg-[#171717] border-neutral-800">
+            <div className="p-4 border-b border-neutral-800">
+                <button onClick={onCreateGroup} className="bg-blue-600 hover:bg-blue-700 transition-colors font-semibold text-white w-full py-2 rounded">
                     + Create Group
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto flex flex-col p-2 gap-1">
                 {groups.map((group) => (
                     <GroupCard
                         key={group.id}
                         id={group.id}
                         name={group.name}
                         onClick={() => handleGroupClick(group.id)}
+                        isSelected={selectedGroup === group.id}
                     />
                 ))}
             </div>
