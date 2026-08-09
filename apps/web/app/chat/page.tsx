@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import MessageBox from "../../components/MessageBox";
+import MessageBox from "../../components/GroupMessageBox";
 import Sidebar from "../../components/Sidebar"
 import CreateGroupModal from "../../components/CreateGroupModal";
 import { addMember, createGroup, getMyGroups } from "../api/groups";
@@ -28,6 +28,9 @@ export default function ChatPage() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [memberEmail, setMemberEmail] = useState("");
+
+
+  const[selectedUser,setSelectedUser]
 
   const currentGroup = groups.find(
     (group) => group.id === selectedGroup
@@ -148,7 +151,16 @@ export default function ChatPage() {
 
           </div>
 
-        ) : (
+        ) : selectedUser ? (
+          
+        )
+        
+        
+        
+        
+        
+        
+        :(
           <div className="bg-[#1D1F1F] h-full items-center justify-center flex">
             <p className="text-slate-200">
               Let's connect

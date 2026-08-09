@@ -5,6 +5,8 @@ import { AuthUser } from "./types/auth";
 import jwt from "jsonwebtoken"
 import groupHandler from "./webSockets/groupHandler";
 import { AuthenticatedWebSocket } from "./webSockets/roomManger";
+import { addOnlineUser, removeOnlineUser } from "./webSockets/personalManager";
+import personalHandler from "./webSockets/personalHandler";
 
 const PORT = process.env.PORT || 5000;
 
@@ -34,6 +36,8 @@ wss.on("connection", (ws: AuthenticatedWebSocket, req) => {
 
     console.log("User authenticated", decoded.email);
 
+    addOnlineUser(ws)
+
 
   } catch (error) {
     console.log("Invalid token");
@@ -46,11 +50,32 @@ wss.on("connection", (ws: AuthenticatedWebSocket, req) => {
 
 
   ws.on("message", async (message) => {
-    await groupHandler(ws, message);
+
+
+
+    try {
+
+      const data = JSON.parse(message.toString());
+
+
+      if (data.type === "send-personal-message") {
+        await personalHandler(ws, message)
+        return;
+      }
+
+      await groupHandler(ws, message)
+
+    } catch (error) {
+      console.error(
+        "Invalid Websocket message",error
+      )
+    }
   });
 
   ws.on("close", () => {
     console.log(`${ws.user?.email} disconnected`);
+
+    removeOnlineUser(ws);
   });
 
 });
