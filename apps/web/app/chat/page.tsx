@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import MessageBox from "../../components/GroupMessageBox";
 import Sidebar from "../../components/Sidebar"
 import CreateGroupModal from "../../components/CreateGroupModal";
 import { addMember, createGroup, getMyGroups } from "../api/groups";
-import { getSocket } from "../lib/socket";
 import AddMemmberModal from "../../components/AddMemberModal";
 import { useRouter } from "next/navigation";
+import { getUsers } from "../api/chats";
+import GroupMessageBox from "../../components/GroupMessageBox";
+import PersonalMessageBox from "../../components/PersonalMessageBox";
 
 
 
@@ -22,6 +23,12 @@ export default function ChatPage() {
     name: string;
   };
 
+  type User = {
+    id: string;
+    username: string;
+    email: string;
+  }
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [groups, setGroups] = useState<Group[]>([]);
@@ -30,21 +37,26 @@ export default function ChatPage() {
   const [memberEmail, setMemberEmail] = useState("");
 
 
-  const[selectedUser,setSelectedUser]
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+
 
   const currentGroup = groups.find(
     (group) => group.id === selectedGroup
   )
+  const currentUser = users?.find(
+    user => user.id === selectedUser
+  )
 
-  const router=useRouter()
+  const router = useRouter()
 
-  useEffect(()=>{
-    const token=localStorage.getItem("token");
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-    if(!token){
+    if (!token) {
       router.replace("/signup")
     }
-  },[router]);
+  }, [router]);
 
   useEffect(() => {
     async function loadGroups() {
@@ -65,6 +77,30 @@ export default function ChatPage() {
 
     loadGroups();
   }, []);
+
+
+  useEffect(() => {
+    async function loadUsers() {
+
+      try {
+        const data = await getUsers();
+
+        console.log("Received", data);
+
+
+        if (data.success) {
+          setUsers(data.users);
+        }
+      } catch (error) {
+        console.error("Load users failed", error);
+      }
+
+    }
+
+    loadUsers()
+  }, []);
+
+
 
 
 
@@ -117,6 +153,18 @@ export default function ChatPage() {
 
 
 
+  function handleGroupSelect(groupId: string) {
+    setSelectedGroup(groupId);
+    setSelectedUser(null);
+  }
+
+  function handleUserSelect(userId: string) {
+    setSelectedUser(userId);
+    setSelectedGroup(null);
+  }
+
+
+
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -124,7 +172,14 @@ export default function ChatPage() {
         onCreateGroup={() => setShowCreateModal(true)}
         groups={groups}
         selectedGroup={selectedGroup}
-        setSelectedGroup={setSelectedGroup}
+        ongroupselected={handleGroupSelect}
+
+
+        users={users}
+        selectedUser={selectedUser}
+        onUserSelected={handleUserSelect}
+
+
 
       />
 
@@ -146,28 +201,43 @@ export default function ChatPage() {
             </div>
 
             <div className="flex-1 overflow-hidden">
-              <MessageBox selectedGroup={selectedGroup} />
+              <GroupMessageBox selectedGroup={selectedGroup} />
             </div>
 
           </div>
 
         ) : selectedUser ? (
-          
-        )
-        
-        
-        
-        
-        
-        
-        :(
-          <div className="bg-[#1D1F1F] h-full items-center justify-center flex">
-            <p className="text-slate-200">
-              Let's connect
-            </p>
-          </div>
+          <div className="flex flex-col h-full">
 
+            <div className="bg-slate-950 p-4 flex justify-between px-6 items-center">
+
+              <span className="text-slate-50 font-semibol text-2xl">
+                {currentUser?.username}
+              </span>
+          
+            </div>
+
+            <div className="flex-1 overflow-hidden">
+              <PersonalMessageBox selectedUser={selectedUser}/>
+
+            </div>
+
+          </div>
         )
+
+
+
+
+
+
+          : (
+            <div className="bg-[#1D1F1F] h-full items-center justify-center flex">
+              <p className="text-slate-200">
+                Let's connect
+              </p>
+            </div>
+
+          )
 
         }
       </div>

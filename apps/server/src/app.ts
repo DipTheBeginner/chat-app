@@ -2,6 +2,7 @@ import express from "express"
 import cors from "cors";
 import authRoutes from "./routes/auth.routes";
 import groupRoutes from "./routes/group.routes";
+import chatRoutes from "./routes/chat.routes";
 
 
 const app = express();
@@ -31,5 +32,6 @@ app.use((req, res, next) => {
 
 app.use("/api/auth", authRoutes)
 app.use("/groups", groupRoutes);
+app.use("/personal",chatRoutes);
 
 export default app;

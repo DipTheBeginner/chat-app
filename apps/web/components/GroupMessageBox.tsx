@@ -19,7 +19,7 @@ type Props = {
 
 
 
-export default function MessageBox({ selectedGroup }: Props) {
+export default function GroupMessageBox({ selectedGroup }: Props) {
 
 
     const [messages, setMessages] = useState<Message[]>([]);

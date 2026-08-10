@@ -1,111 +1,113 @@
-    const BASE_URL = "http://localhost:5000";
+const BASE_URL = "http://localhost:5000";
 
 
-    function getToken() {
-        return localStorage.getItem("token");
-    }
+function getToken() {
+    return localStorage.getItem("token");
+}
 
 
 
 
-    export async function getMyGroups() {
+export async function getMyGroups() {
 
-        console.log("Entered getMyGroups");
+    console.log("Entered getMyGroups");
 
-        console.log("Token:", getToken());
-        console.log("Before fetch");
+    console.log("Token:", getToken());
+    console.log("Before fetch");
 
-        const response = await fetch(`${BASE_URL}/groups/my-groups`, {
-            headers: {
-                Authorization: `Bearer ${getToken()}`
-            }
-
-        })
-
-        console.log("After fetch");
-
-
-        if (!response.ok) {
-            throw new Error("Failed to fetch groups")
+    const response = await fetch(`${BASE_URL}/groups/my-groups`, {
+        headers: {
+            Authorization: `Bearer ${getToken()}`
         }
 
-        return response.json();
+    })
+
+    console.log("After fetch");
+
+    console.log("GET GROUPS STATUS:", response.status); const data = await response.json(); console.log("GET GROUPS RESPONSE:", data);
+
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch groups")
     }
 
+    return data;
+}
 
 
-    export async function getGroupMessages(groupId: string) {
 
-        const response = await fetch(`${BASE_URL}/groups/${groupId}/messages`, {
-            headers: {
-                Authorization: `Bearer ${getToken()}`
-            }
-        })
+export async function getGroupMessages(groupId: string) {
 
-        if (!response.ok) {
-            throw new Error("Failed to get message")
+    const response = await fetch(`${BASE_URL}/groups/${groupId}/messages`, {
+        headers: {
+            Authorization: `Bearer ${getToken()}`
         }
+    })
 
-        return response.json();
-
-
+    if (!response.ok) {
+        throw new Error("Failed to get message")
     }
 
+    return response.json();
 
 
-    export async function createGroup(name: string) {
+}
 
-        const response = await fetch(`${BASE_URL}/groups`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${getToken()}`
-            },
 
-            body: JSON.stringify({
-                name,
-            })
+
+export async function createGroup(name: string) {
+
+    const response = await fetch(`${BASE_URL}/groups`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getToken()}`
+        },
+
+        body: JSON.stringify({
+            name,
         })
+    })
 
 
-        if (!response.ok) {
-            throw new Error("Failed to create group")
-        }
-
-        return response.json()
+    if (!response.ok) {
+        throw new Error("Failed to create group")
     }
 
-
-
-    export async function addMember(groupId: string, email: string) {
-        const token = localStorage.getItem("token")
+    return response.json()
+}
 
 
 
-        const response = await fetch(`${BASE_URL}/groups/add-member`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-
-            body: JSON.stringify({
-                groupId,
-                email,
-            }),
+export async function addMember(groupId: string, email: string) {
+    const token = localStorage.getItem("token")
 
 
-        })
+
+    const response = await fetch(`${BASE_URL}/groups/add-member`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+        },
+
+        body: JSON.stringify({
+            groupId,
+            email,
+        }),
 
 
-        if (response.status === 401) {
-            localStorage.removeItem("token");
-            window.location.href = "/signup";
-            return;
-        }
+    })
 
-        return response.json();
 
+    if (response.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/signup";
+        return;
     }
+
+    return response.json();
+
+}
 
 

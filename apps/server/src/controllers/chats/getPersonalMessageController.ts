@@ -13,30 +13,53 @@ export default async function getPersonalMessageController(req:Request , res: Re
     try{
 
         const senderUserId=req.user!.id;
-        const receiverUserId=req.params.id;
+        const receiverUserId=req.params.id as string;
 
 
         if(!receiverUserId){
-            res.status(400).json({
+           return res.status(400).json({
                 success:false,
                 message:"User id is required"
             })
+           
         }
 
-        
 
 
-        const message=await prisma.message.findMany({
+
+        const messages=await prisma.message.findMany({
             where:{
-                id:chatId
+                OR:[
+                    {
+                        senderId:senderUserId,
+                        receiverId:receiverUserId
+                    },
+                    {
+                        senderId:receiverUserId,
+                        receiverId:senderUserId,
+                    }
+                ]
+            },
+            orderBy:{
+                createdAt:"asc"
             }
+        });
+
+
+        return res.status(200).json({
+            success:true,
+            messages
         })
 
 
+    }catch(error){
+        console.error("Get Personal message error:",error);
 
-        
 
-
+        return res.status(500).json({
+            success:false,
+            message:"Failed to get personal message"
+        })
     }
     
 }

@@ -5,6 +5,7 @@
 
 import GroupCard from "./groupCard";
 import { getSocket } from "../app/lib/socket";
+import UserCard from "./userCard";
 
 
 type Group = {
@@ -12,12 +13,23 @@ type Group = {
     name: string;
 };
 
+type User = {
+    id: string,
+    username: string,
+    email: string
+}
 
 type props = {
     onCreateGroup: () => void;
     groups: Group[]
     selectedGroup: string | null;
-    setSelectedGroup: React.Dispatch<React.SetStateAction<string | null>>;
+    ongroupselected: (groupId: string) => void;
+
+
+    users: User[];
+    selectedUser: string | null;
+    onUserSelected: (userId: string) => void;
+
 }
 
 
@@ -27,22 +39,32 @@ type props = {
 export default function Sidebar({ onCreateGroup,
     groups,
     selectedGroup,
-    setSelectedGroup, }: props) {
+    users,
+    selectedUser,
+    onUserSelected,
+    ongroupselected
+}: props) {
 
 
 
     async function handleGroupClick(groupId: string) {
-        setSelectedGroup(groupId)
+        ongroupselected(groupId)
+
         const socket = await getSocket();
 
 
-            socket.send(
-                JSON.stringify({
-                    type: "join-group",
-                    groupId
-                })
-            )
+        socket.send(
+            JSON.stringify({
+                type: "join-group",
+                groupId
+            })
+        )
 
+    }
+
+    async function handleUserClick(userId: string) {
+
+        onUserSelected(userId)
 
     }
 
@@ -59,16 +81,41 @@ export default function Sidebar({ onCreateGroup,
             </div>
 
             <div className="flex-1 overflow-y-auto flex flex-col p-2 gap-1">
-                {groups.map((group) => (
-                    <GroupCard
-                        key={group.id}
-                        id={group.id}
-                        name={group.name}
-                        onClick={() => handleGroupClick(group.id)}
-                        isSelected={selectedGroup === group.id}
-                    />
-                ))}
+                <div>
+
+                    {groups.map((group) => (
+                        <GroupCard
+                            key={group.id}
+                            id={group.id}
+                            name={group.name}
+                            onClick={() => handleGroupClick(group.id)}
+                            isSelected={selectedGroup === group.id}
+                        />
+                    ))}
+                </div>
+
+                <div>
+                    {users.map((user) => (
+                        <UserCard
+
+                            key={user.id}
+                            id={user.id}
+                            name={user.username}
+                            onClick={() => handleUserClick(user.id)}
+                            isSelected={selectedUser === user.id}
+
+
+                        />
+                    ))}
+
+
+
+
+                </div>
             </div>
+
+
+
 
         </div>
     );
