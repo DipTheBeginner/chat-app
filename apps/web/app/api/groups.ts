@@ -12,7 +12,7 @@ export async function getMyGroups() {
 
     console.log("Entered getMyGroups");
 
-    console.log("Token:", getToken());
+    
     console.log("Before fetch");
 
     const response = await fetch(`${BASE_URL}/groups/my-groups`, {

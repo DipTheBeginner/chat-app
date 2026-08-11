@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { getUsers } from "../api/chats";
 import GroupMessageBox from "../../components/GroupMessageBox";
 import PersonalMessageBox from "../../components/PersonalMessageBox";
+import { getSocket } from "../lib/socket";
 
 
 
@@ -57,6 +58,13 @@ export default function ChatPage() {
       router.replace("/signup")
     }
   }, [router]);
+
+
+  useEffect(() => {
+    getSocket().catch((error) => {
+      console.error("Failed to connect websocket", error)
+    })
+  }, [])
 
   useEffect(() => {
     async function loadGroups() {
@@ -214,11 +222,11 @@ export default function ChatPage() {
               <span className="text-slate-50 font-semibol text-2xl">
                 {currentUser?.username}
               </span>
-          
+
             </div>
 
             <div className="flex-1 overflow-hidden">
-              <PersonalMessageBox selectedUser={selectedUser}/>
+              <PersonalMessageBox selectedUser={selectedUser} />
 
             </div>
 

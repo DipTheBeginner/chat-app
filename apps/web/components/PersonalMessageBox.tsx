@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { getPersonalChat } from "../app/api/chats";
-import { getSocket } from "../app/lib/socket";
+import { sendSocketMessage, subscribeSocket } from "../app/lib/socket";
+import { getCurrentUserId } from "../app/api/auth";
 
 
 type Message = {
@@ -29,16 +30,21 @@ export default function PersonalMessageBox({ selectedUser }: props) {
 
     const [message, setMessage] = useState("");
 
-    
+    const myUserId = getCurrentUserId();
+
+
 
     useEffect(() => {
 
         setMessage("")
 
 
-        if (!selectedUser) return;
+        if (!selectedUser) {
+            setMessages([]);
+            return;
+        }
 
-        let socket: WebSocket;
+
 
 
         async function setup() {
@@ -49,27 +55,6 @@ export default function PersonalMessageBox({ selectedUser }: props) {
                     setMessages(data.messages);
                 }
 
-                socket = await getSocket();
-
-
-                socket.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-
-                    if (data.type === "personal-message-sent" &&
-                        data.message.receiverId === selectedUser
-                    ) {
-                        setMessages((prev) => [...prev, data.message]);
-                    }
-
-                    if(data.type === "receive-personal-message" &&
-                        data.message.senderId === selectedUser
-                    ){
-                        setMessages((prev)=>[...prev , data.message])
-                    }
-                }
-
-
-
             } catch (error) {
                 console.error("Failed to load personal chat", error);
             }
@@ -77,6 +62,27 @@ export default function PersonalMessageBox({ selectedUser }: props) {
 
 
         setup()
+
+
+        const unsubscribe = subscribeSocket((data) => {
+
+            if (
+                data.type === "personal-message-sent" && data.message.receiverId === selectedUser
+            ) {
+                setMessages((prev) => [...prev, data.message])
+            }
+
+
+            if (
+                data.type === "receive-personal-message" && data.message.senderId === selectedUser
+            ) {
+                setMessages((prev) => [...prev, data.message])
+            }
+        });
+
+
+        return unsubscribe
+
     }, [selectedUser])
 
 
@@ -90,18 +96,19 @@ export default function PersonalMessageBox({ selectedUser }: props) {
 
         if (!message.trim()) return;
 
-        const socket = await getSocket();
+        try {
 
-        socket.send(
-            JSON.stringify({
+            await sendSocketMessage({
                 type: "send-personal-message",
                 receiverId: selectedUser,
                 content: message.trim(),
-
             })
-        )
 
-        setMessage("");
+
+            setMessage("");
+        } catch (error) {
+            console.error("Failed to send message", error);
+        }
 
     }
 
@@ -111,13 +118,28 @@ export default function PersonalMessageBox({ selectedUser }: props) {
 
         <div className="h-full bg-[#171717] flex flex-col ">
             <div className="flex-1 flex flex-col overflow-y-auto p-4 bg-[#171717] gap-4">
-                {messages.map((msg) => (
-                    <div
-                        key={msg.id}
-                        className="rounded bg-[#154D37] text-white p-2 w-max max-w-md" >
-                        {msg.content}
-                    </div>
-                ))}
+                {messages.map((msg) => {
+                    const isMine = msg.senderId === myUserId;
+
+                    return (
+                        <div
+
+                            key={msg.id}
+                            className={`flex w-full ${isMine ? "justify-end" : "justify-start"}`}
+                        >
+
+                            <div
+
+                                className={`rounded-2xl px-4 py-2 text-slate-50 max-w-md ${isMine ? "bg-[#154D37]" : "bg-[#242526]"}`}
+                            >
+                                {msg.content}
+
+
+                            </div>
+
+                        </div>
+                    )
+                })}
             </div>
 
 

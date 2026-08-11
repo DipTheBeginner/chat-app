@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { getGroupMessages } from "../app/api/groups";
-import { getSocket } from "../app/lib/socket";
+import { getSocket, sendSocketMessage, subscribeSocket } from "../app/lib/socket";
 
 
 
@@ -43,41 +43,18 @@ export default function GroupMessageBox({ selectedGroup }: Props) {
 
         loadMessage()
 
-        console.log("selected Group:", selectedGroup)
-    }, [selectedGroup])
+        const unsubscribe = subscribeSocket((data) => {
 
-
-    useEffect(() => {
-
-        async function setUpSocket() {
-            const socket = await getSocket();
-
-            socket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-
-                if (data.type === "receive-message" &&
-                    data.message.groupId === selectedGroup) {
-                    setMessages((prev) => [...prev, data.message]);
-                }
+            if (data.type === "receive-message" && data.message.groupId === selectedGroup) {
+                setMessages((prev) => [...prev, data.message])
             }
+        })
 
-        }
-
-        setUpSocket();
-
-
-
+        return unsubscribe;
     }, [selectedGroup])
-
 
 
     async function handleSendMessage() {
-
-        console.log("Send button clicked")
-
-
-        console.log("selectedGroup:", selectedGroup);
-        console.log("message:", `"${message}"`);
 
 
         if (!selectedGroup) {
@@ -85,18 +62,19 @@ export default function GroupMessageBox({ selectedGroup }: Props) {
             return;
         }
 
-        if (!message.trim()) return;
+        try {
 
-        const socket = await getSocket();
-        console.log("socket arrived", socket)
 
-        socket.send(
-            JSON.stringify({
+            await sendSocketMessage({
                 type: "send-message",
                 groupId: selectedGroup,
-                content: message,
+                content: message.trim(),
             })
-        )
+
+        }catch(error){
+            console.error("Failed to send message:",error)
+        }
+
 
         setMessage("")
     }

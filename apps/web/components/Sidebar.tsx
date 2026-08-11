@@ -4,7 +4,7 @@
 "use client";
 
 import GroupCard from "./groupCard";
-import { getSocket } from "../app/lib/socket";
+import { getSocket, sendSocketMessage } from "../app/lib/socket";
 import UserCard from "./userCard";
 
 
@@ -48,17 +48,13 @@ export default function Sidebar({ onCreateGroup,
 
 
     async function handleGroupClick(groupId: string) {
+
         ongroupselected(groupId)
 
-        const socket = await getSocket();
-
-
-        socket.send(
-            JSON.stringify({
-                type: "join-group",
-                groupId
-            })
-        )
+        await sendSocketMessage({
+            type: "join-group",
+            groupId
+        })
 
     }
 

@@ -10,7 +10,6 @@ export default async function authMiddleware(req: Request, res: Response, next: 
 
     try {
 
-        console.log("Entered authMiddleware");
 
         const authHeader = req.headers.authorization;
 
@@ -54,7 +53,7 @@ export default async function authMiddleware(req: Request, res: Response, next: 
             email: user.email,
         };
 
-        console.log("Auth success");
+        
         next();
 
 

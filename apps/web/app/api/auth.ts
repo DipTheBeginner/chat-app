@@ -49,4 +49,33 @@ export async function login(email:string , password : string) {
     return response.json()
 
     
+
+}
+
+
+export function getCurrentUserId() {
+
+    const token = localStorage.getItem("token");
+
+    if(!token){
+        return null;
+    }
+
+
+    try{
+
+        const parts = token.split(".")
+        const payload= parts[1];
+
+        if(!payload){
+            return null;
+        }
+
+        const decoded = JSON.parse(atob(payload))
+        return decoded.id as string;
+    }catch(error){
+        console.error("Failed to decode token",error)
+        return null;
+    }
+    
 }

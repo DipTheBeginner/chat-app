@@ -5,8 +5,8 @@ import { AuthUser } from "./types/auth";
 import jwt from "jsonwebtoken"
 import groupHandler from "./webSockets/groupHandler";
 import { AuthenticatedWebSocket } from "./webSockets/roomManger";
-import { addOnlineUser, removeOnlineUser } from "./webSockets/personalManager";
 import personalHandler from "./webSockets/personalHandler";
+import { addOnlineUser, removeOnlineUser } from "./webSockets/personalManager";
 
 const PORT = process.env.PORT || 5000;
 
