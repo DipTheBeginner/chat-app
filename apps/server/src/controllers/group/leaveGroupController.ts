@@ -5,6 +5,8 @@ import { Request, Response } from "express";
 
 export default async function leaveGroupController(req: Request, res: Response) {
 
+    console.log("🔥 LEAVE GROUP CONTROLLER HIT");
+
 
     try {
 

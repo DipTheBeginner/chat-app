@@ -12,7 +12,7 @@ export async function getMyGroups() {
 
     console.log("Entered getMyGroups");
 
-    
+
     console.log("Before fetch");
 
     const response = await fetch(`${BASE_URL}/groups/my-groups`, {
@@ -108,6 +108,42 @@ export async function addMember(groupId: string, email: string) {
 
     return response.json();
 
+}
+
+
+export async function leaveGroup(groupId: string) {
+
+
+    const token = localStorage.getItem("token")
+
+
+
+
+
+    const response = await fetch(`${BASE_URL}/groups/${groupId}/leave`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+
+
+    console.log("LEAVE STATUS:", response.status);
+
+    if (!response.ok) {
+        const text = await response.text();
+        console.error(text);
+        throw new Error("Failed to leave group");
+    }
+
+
+    if (response.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/signup";
+        return;
+    }
+
+    return response.json();
 }
 
 

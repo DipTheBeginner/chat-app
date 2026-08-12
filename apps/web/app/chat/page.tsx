@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar"
 import CreateGroupModal from "../../components/CreateGroupModal";
-import { addMember, createGroup, getMyGroups } from "../api/groups";
+import { addMember, createGroup, getMyGroups, leaveGroup } from "../api/groups";
 import AddMemmberModal from "../../components/AddMemberModal";
 import { useRouter } from "next/navigation";
 import { getUsers } from "../api/chats";
 import GroupMessageBox from "../../components/GroupMessageBox";
 import PersonalMessageBox from "../../components/PersonalMessageBox";
 import { getSocket } from "../lib/socket";
+import { getCurrentUserId } from "../api/auth";
+import GroupSettingsModal from "../../components/GroupSettingsModal";
 
 
 
@@ -22,6 +24,7 @@ export default function ChatPage() {
   type Group = {
     id: string;
     name: string;
+    createdBy: string;
   };
 
   type User = {
@@ -42,12 +45,22 @@ export default function ChatPage() {
   const [users, setUsers] = useState<User[]>([]);
 
 
+  const [myUserId, setMyUserId] =useState <string | null > (null);
+
+
   const currentGroup = groups.find(
-    (group) => group.id === selectedGroup
+    group => group.id === selectedGroup
   )
   const currentUser = users?.find(
     user => user.id === selectedUser
   )
+
+
+  useEffect(()=>{
+    setMyUserId(getCurrentUserId());
+  },[])
+
+  const isGroupAdmin = currentGroup?.createdBy === myUserId;
 
   const router = useRouter()
 
@@ -160,6 +173,35 @@ export default function ChatPage() {
   }
 
 
+  async function handleLeaveGroup() {
+
+    if (!selectedGroup) {
+      return;
+    }
+
+
+    try {
+
+      const data = await leaveGroup(selectedGroup);
+
+
+      console.log("Leave group response", data);
+
+
+      if (data.success) {
+
+        setGroups((prev) => prev.filter(group => group.id !== selectedGroup));
+        setSelectedGroup(null);
+      }
+
+      
+    } catch (error) {
+      console.error("Failed to leave group", error)
+    }
+
+  }
+
+
 
   function handleGroupSelect(groupId: string) {
     setSelectedGroup(groupId);
@@ -203,9 +245,23 @@ export default function ChatPage() {
               <span className="text-slate-50 font-semibold text-2xl">
                 {currentGroup?.name}
               </span>
-              <div className="text-slate-50 font-medium text-lg">
-                <button onClick={() => setShowAddMemberModal(true)}>Add Member</button>
+
+              <div className="flex flex-ro">
+
+
+
+
+                <GroupSettingsModal
+                  isAdmin={isGroupAdmin}
+                  onAddMember={() => setShowAddMemberModal(true)}
+                  onLeaveGroup={handleLeaveGroup}
+                />
+
+
               </div>
+
+
+
             </div>
 
             <div className="flex-1 overflow-hidden">
@@ -232,11 +288,6 @@ export default function ChatPage() {
 
           </div>
         )
-
-
-
-
-
 
           : (
             <div className="bg-[#1D1F1F] h-full items-center justify-center flex">

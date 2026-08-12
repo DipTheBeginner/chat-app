@@ -14,6 +14,7 @@ const rooms = new Map<string, Set<AuthenticatedWebSocket>>();
 
 
 export function joinRoom(groupId: string, ws: AuthenticatedWebSocket) {
+    
     if (!rooms.has(groupId)) {
         rooms.set(groupId, new Set());
     }

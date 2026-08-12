@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { getGroupMessages } from "../app/api/groups";
 import { getSocket, sendSocketMessage, subscribeSocket } from "../app/lib/socket";
+import { getCurrentUserId } from "../app/api/auth";
 
 
 
@@ -24,6 +25,10 @@ export default function GroupMessageBox({ selectedGroup }: Props) {
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [message, setMessage] = useState("");
+
+    const myUserId = getCurrentUserId();
+
+    const messagesCurrentRef = useRef<HTMLDivElement>(null);
 
 
     useEffect(() => {
@@ -54,6 +59,13 @@ export default function GroupMessageBox({ selectedGroup }: Props) {
     }, [selectedGroup])
 
 
+    useEffect(()=>{
+        if(messagesCurrentRef.current){
+            messagesCurrentRef.current.scrollTop = messagesCurrentRef.current.scrollHeight
+        }
+    },[messages])
+
+
     async function handleSendMessage() {
 
 
@@ -71,12 +83,13 @@ export default function GroupMessageBox({ selectedGroup }: Props) {
                 content: message.trim(),
             })
 
-        }catch(error){
-            console.error("Failed to send message:",error)
+            setMessage("")
+        } catch (error) {
+            console.error("Failed to send message:", error)
         }
 
 
-        setMessage("")
+
     }
 
 
@@ -88,14 +101,31 @@ export default function GroupMessageBox({ selectedGroup }: Props) {
 
     return (
         <div className="h-full bg-[#171717] flex flex-col ">
-            <div className="flex-1 flex flex-col overflow-y-auto p-4 bg-[#171717] gap-4">
-                {messages.map((msg) => (
-                    <div
-                        key={msg.id}
-                        className="rounded bg-[#154D37] text-white p-2 w-max max-w-md" >
-                        {msg.content}
-                    </div>
-                ))}
+            <div
+                ref={messagesCurrentRef}
+                className="flex-1 flex flex-col overflow-y-auto p-4 bg-[#171717] gap-4">
+                {messages.map((msg) => {
+                    const isMine = msg.senderId === myUserId;
+                    return (
+                        <div
+                            key={msg.id}
+                            className={`flex w-full ${isMine ? "justify-end" : "justify-start"} `}
+                        >
+
+                            <div
+                                className={`rounded-2xl px-4 py-2 text-slate-50 ${isMine ? "bg-[#154D37]" : "bg-[#242526]"}`}>
+
+                                {msg.content}
+
+                            </div>
+
+                        </div>
+                    )
+
+
+                })
+
+                }
             </div>
 
 
@@ -104,7 +134,13 @@ export default function GroupMessageBox({ selectedGroup }: Props) {
                     placeholder="Type a message"
                     className="flex-1 border px-4 py-2 outline-none bg-[#242526] rounded-4xl"
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)} />
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            handleSendMessage();
+                        }
+                    }}
+                />
 
 
                 <button className="cursor-pointer text-lg font-semibold rounded bg-blue-600 px-6 py-2" onClick={handleSendMessage}>Send</button>

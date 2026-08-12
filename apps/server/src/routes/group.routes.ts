@@ -15,7 +15,7 @@ const router = Router();
 
 router.post("/", authMiddleware, createGroupController);
 router.post("/:groupId/join", authMiddleware, joinGroupController)
-router.post("/:groupId/leave", authMiddleware, leaveGroupController)
+router.delete("/:groupId/leave", authMiddleware, leaveGroupController)
 router.get("/my-groups", authMiddleware, getMyGroupController)
 router.get("/:groupId/messages", authMiddleware,getGroupMessagesController)
 router.post("/add-member",authMiddleware,addMemberController);

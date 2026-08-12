@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { getPersonalChat } from "../app/api/chats";
 import { sendSocketMessage, subscribeSocket } from "../app/lib/socket";
 import { getCurrentUserId } from "../app/api/auth";
@@ -31,6 +31,8 @@ export default function PersonalMessageBox({ selectedUser }: props) {
     const [message, setMessage] = useState("");
 
     const myUserId = getCurrentUserId();
+
+    const messagesContainerRef = useRef<HTMLDivElement>(null)
 
 
 
@@ -86,6 +88,13 @@ export default function PersonalMessageBox({ selectedUser }: props) {
     }, [selectedUser])
 
 
+    useEffect(() => {
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+    }, [messages])
+
+
 
     async function handleSendMessage() {
 
@@ -117,7 +126,10 @@ export default function PersonalMessageBox({ selectedUser }: props) {
     return (
 
         <div className="h-full bg-[#171717] flex flex-col ">
-            <div className="flex-1 flex flex-col overflow-y-auto p-4 bg-[#171717] gap-4">
+            <div
+                ref={messagesContainerRef}
+
+                className="flex-1 flex flex-col overflow-y-auto p-4 bg-[#171717] gap-4">
                 {messages.map((msg) => {
                     const isMine = msg.senderId === myUserId;
 
